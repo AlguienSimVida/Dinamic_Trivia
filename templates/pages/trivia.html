@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Trivia</title>
+</head>
+<body>
+    <h1>Generar Trivia</h1>
+    <form action="{% url 'generate_trivia' %}" method="post">
+        {% csrf_token %}
+        <label for="topic">Tema:</label>
+        <input type="text" id="topic" name="topic" required>
+        <br>
+        <label for="difficulty">Grado de Dificultad:</label>
+        <select id="difficulty" name="difficulty" required>
+            <option value="fácil">Fácil</option>
+            <option value="medio">Medio</option>
+            <option value="difícil">Difícil</option>
+        </select>
+        <br>
+        <button type="submit">Generar Trivia</button>
+    </form>
+    {% if questions %}
+        <h2>Trivia Generada:</h2>
+        <form action="{% url 'verify_answers' %}" method="post">
+            {% csrf_token %}
+            <ul>
+                {% for question in questions %}
+                    <li>
+                        <p>{{ question.text }}</p>
+                        <ul>
+                            {% for answer in question.answers %}
+                                <li>
+                                    <label>
+                                        <input type="radio" name="question_{{ forloop.parentloop.counter }}" value="{{ answer }}" required>
+                                        {{ answer }}
+                                    </label>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+            <button type="submit">Enviar Respuestas</button>
+        </form>
+    {% endif %}
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+</body>
+</html>
