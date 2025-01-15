@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generar Trivia</title>
+    <title>Trivia</title>
 </head>
 <body>
-    <h1>Generar Trivia</h1>
+    <h1>Trivia</h1>
+
+    <!-- Formulario para generar trivia -->
+    {% if not questions and not current_question and not results %}
     <form action="{% url 'generate_trivia' %}" method="post">
         {% csrf_token %}
         <label for="topic">Tema:</label>
@@ -21,30 +24,54 @@
         <br>
         <button type="submit">Generar Trivia</button>
     </form>
-    {% if questions %}
-        <h2>Trivia Generada:</h2>
-        <form action="{% url 'verify_answers' %}" method="post">
+    {% endif %}
+
+    <!-- Mostrar pregunta actual -->
+    {% if current_question %}
+        <h2>Pregunta {{ current_question_number }} de {{ total_questions }}</h2>
+        <form action="{% url 'next_question' %}" method="post">
             {% csrf_token %}
+            <p>{{ current_question.question }}</p>
             <ul>
-                {% for question in questions %}
+                {% for option in current_question.options %}
                     <li>
-                        <p>{{ question.text }}</p>
-                        <ul>
-                            {% for answer in question.answers %}
-                                <li>
-                                    <label>
-                                        <input type="radio" name="question_{{ forloop.parentloop.counter }}" value="{{ answer }}" required>
-                                        {{ answer }}
-                                    </label>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                        <label>
+                            <input type="radio" name="answer" value="{{ option }}" required>
+                            {{ option }}
+                        </label>
                     </li>
                 {% endfor %}
             </ul>
-            <button type="submit">Enviar Respuestas</button>
+            <button type="submit">Siguiente</button>
         </form>
     {% endif %}
+
+    <!-- Mostrar resultados -->
+    {% if results %}
+        <h2>Resultados</h2>
+        <ul>
+            {% for result in results %}
+                <li>
+                    <p>{{ result.question }}</p>
+                    <ul>
+                        {% for option in result.options %}
+                            <li>
+                                {% if option == result.correct_answer %}
+                                    <strong style="color: green;">{{ option }} (Respuesta Correcta)</strong>
+                                {% elif option == result.user_answer %}
+                                    <span style="color: red;">{{ option }} (Tu Respuesta)</span>
+                                {% else %}
+                                    {{ option }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+        <p>Obtuviste {{ correct_answers }} de {{ total_questions }} respuestas correctas.</p>
+    {% endif %}
+
     {% if error %}
         <p>{{ error }}</p>
     {% endif %}
